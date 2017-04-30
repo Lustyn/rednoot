@@ -18,7 +18,7 @@ local defaultSide = "front"
 
 local args = {...}
 
-if args[1] and (args[1].sub(1,1) == "-" or #args == 4 or #args == 1) and (args[1]:find("help") or args[1]:find("%?") or args[1]:find("/")) then
+if args[1] and (args[1].sub(1,1) == "-" or #args[1] == 4 or #args[1] == 1) and (args[1]:find("help") or args[1]:find("%?") or args[1]:find("/")) then
     error("Usage: "..shell.getRunningProgram().." [endpoint ("..defaultEndpoint..")] [mountPoint ("..defaultSide..")]")
 end
 
