@@ -38,6 +38,9 @@ local virtualModem = {}
 local ws
 local userID = 0
 local openChannels = {}
+local connected = false
+local timer
+local timeout = 10
 
 os.getComputerID = function()
     return userID
@@ -141,20 +144,23 @@ virtualModem.isOpen = function(channel)
 end
 
 local function daemon()
+    ws = socket.websocket(endpoint)
+    timer = os.startTimer(timeout)
     while true do
         local ev = {coroutine.yield()}
-        if ev[1] == "socket_message" then
+        if ev[1] == "socket_connect" and ev[2] == ws.id() then
+            connected = true
+        elseif ev[1] == "socket_message" and ev[2] == ws.id() then
             local mess = ws.read()
-            if not mess then
-              return
-            end
-            local msg = json.decode(mess)
-            if msg.type == "id" then
-                userID = msg.value
-            elseif msg.type == "receive" then
-                os.queueEvent("modem_message", mountPoint, msg.channel, msg.reply_channel, msg.message, 0, msg.id)
-            elseif msg.type == "error" then
-                os.queueEvent("rednoot_error", msg.message)
+            if mess then
+                local msg = json.decode(mess)
+                if msg.type == "id" then
+                    userID = msg.value
+                elseif msg.type == "receive" then
+                    os.queueEvent("modem_message", mountPoint, msg.channel, msg.reply_channel, msg.message, 0, msg.id)
+                elseif msg.type == "error" then
+                    os.queueEvent("rednoot_error", msg.message)
+                end
             end
         elseif ev[1] == "rednoot_open" then
             ws.write(json.encode({
@@ -178,33 +184,33 @@ local function daemon()
                 message_type = type(ev[4]),
                 message = ev[4]
             }))
+        elseif ev[1] == "timer" and ev[2] == timer then
+            if not connected then
+                return
+            end
         end
     end
-end
-
-ws = socket.websocket(endpoint)
-local timeout = 0
-while (not ws.checkConnected()) and timeout < 200 do
-    write(".")
-    sleep(0)
-    timeout = timeout + 1
-end
-print()
-
-if timeout == 200 then
-    print("Timed out!")
-    return
 end
 
 term.clear()
 term.setCursorPos(1,1)
 
 parallel.waitForAny(daemon, function()
+    while not connected and not ws.checkConnected() do
+        write(".")
+        sleep(0)
+    end
+    term.clear()
+    term.setCursorPos(1,1)
 	print("Connected to network!")
 	shell.run("/rom/programs/shell")
 end)
 
 _G.peripheral = oldPeripheral
 _G.os.getComputerID = oldGetID
-ws.close()
-print("Disconnected from the network.")
+if ws.checkConnected() then
+    ws.close()
+    print("Disconnected from the network.")
+else
+    print("Timed out.")
+end
