@@ -1,9 +1,30 @@
-os.loadAPI("json")
+if not fs.exists(".rednoot") then
+    fs.makeDir(".rednoot")
+end
+
+if not fs.exists(".rednoot/json") then
+    print("Downloading json...")
+    shell.run("pastebin get 4nRg9CHU .rednoot/json")
+end
+
+os.loadAPI(".rednoot/json")
 local json = json
+local defaultEndpoint = "ws://127.0.0.1:3000"
+local defaultSide = "front"
 
-local mountPoint = "front"
+local args = {...}
 
-local endpoint = "ws://127.0.0.1:3000"
+if args[1] and (args[1].sub(1,1) == "-" or #args == 4 or #args == 1) and (args[1]:find("help") or args[1]:find("%?") or args[1]:find("/")) then
+    error("Usage: "..shell.getRunningProgram().." [endpoint ("..defaultEndpoint..")] [mountPoint ("..defaultSide..")]")
+end
+
+local endpoint = args[1] or defaultEndpoint
+
+if endpoint:sub(1,5) ~= "ws://" then
+    endpoint = "ws://"..endpoint
+end
+
+local mountPoint = args[2] or defaultSide
 
 local oldPeripheral = peripheral
 local oldGetID = os.getComputerID
