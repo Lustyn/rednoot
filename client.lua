@@ -9,7 +9,7 @@ end
 
 os.loadAPI(".rednoot/json")
 local json = json
-local defaultEndpoint = "ws://127.0.0.1:3000"
+local defaultEndpoint = "ws://rednoot.geto.ml"
 local defaultSide = "front"
 
 local args = {...}
