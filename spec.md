@@ -1,7 +1,5 @@
 # **Message format**:
 
----
-
 As following, in the JSON format.
 
     {
@@ -10,8 +8,6 @@ As following, in the JSON format.
     }
 
 # **Server -> Client Message Types**:
-
----
 
 ### `error` type
 Returns an error message.
@@ -30,8 +26,6 @@ Receiving a transmitted message.
  - `message` {String} The transmitted message.
 
 # **Client -> Server Message Types**:
-
----
 
 ### `open` type
 Opens a channel.
@@ -53,8 +47,6 @@ Transmits a message.
  - `message` {String} Message to transmit.
 
 # **Error Messages**:
-
----
 
 ### `message_too_long`
 Your message exceeded the max length.
