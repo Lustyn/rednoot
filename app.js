@@ -90,12 +90,38 @@ function addClient(v) {
     return index + 1;
 }
 
+function removeClient(v) {
+    console.log("ID " + v.id + " disconnected");
+    v.channels.forEach(function (i) {
+        getChannel(i).closeClient(v);
+    });
+    clients[v.client_index] = undefined;
+}
+
 for (var i = 0; i < 65535; i++) {
     channels.push(new Channel(i + 1));
     clients[i] = undefined;
 }
 
 clients[65535] = null;
+
+setInterval(function() {
+    clients.forEach(function(c, i) {
+        if(c !== undefined && c !== null) {
+            if (c.readyState === c.OPEN) {
+                try {
+                    c.send(JSON.stringify({
+                        type: "keepalive"
+                    }));
+                } catch (e) {
+                    removeClient(c);
+                }
+            } else if (c.readyState === c.CLOSED) {
+                removeClient(c);
+            }
+        }
+    });
+}, 10000);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -255,11 +281,7 @@ app.ws('/', function (ws, req) {
     });
 
     ws.on('close', function () {
-        console.log("ID " + ws.id + " disconnected");
-        ws.channels.forEach(function (i) {
-            getChannel(i).closeClient(ws);
-        });
-        clients[ws.client_index] = undefined;
+        removeClient(ws);
     });
 });
 
