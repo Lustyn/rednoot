@@ -144,7 +144,11 @@ local function daemon()
     while true do
         local ev = {coroutine.yield()}
         if ev[1] == "socket_message" then
-            local msg = json.decode(ws.read())
+            local mess = ws.read()
+            if not mess then
+              return
+            end
+            local msg = json.decode(mess)
             if msg.type == "id" then
                 userID = msg.value
             elseif msg.type == "receive" then

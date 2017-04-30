@@ -133,12 +133,14 @@ app.ws('/', function (ws, req) {
 
         //console.log(message);
 
-        if (message.length > 2048) {
+        if (message.length > 65535) {
             return ws.send(JSON.stringify({
                 type: "error",
                 message: "message_too_long"
             }), function () {
-                ws.close();
+                setTimeout(function(){
+                    ws.close();
+                }, 100);
             });
         }
 
