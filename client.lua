@@ -1,3 +1,7 @@
+if not socket or not socket.websocket then
+  error("You do not have CCTweaks installed or are not on the latest version.")
+end
+
 if not fs.exists(".rednoot") then
     fs.makeDir(".rednoot")
 end
