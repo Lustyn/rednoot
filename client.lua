@@ -13,7 +13,7 @@ end
 
 os.loadAPI(".rednoot/json")
 local json = json
-local defaultEndpoint = "ws://rednoot.geto.ml"
+local defaultEndpoint = "ws://rednoot.krist.club"
 local defaultSide = "front"
 
 local args = {...}
