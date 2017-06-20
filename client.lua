@@ -70,7 +70,7 @@ peripheral.call = function(side, method, ...)
 	if side == mountPoint then
 		return virtualModem[method](unpack(args))
 	end
-	return oldPeripheral.call(unpack(args))
+	return oldPeripheral.call(side, method, unpack(args))
 end
 
 peripheral.wrap = function(side)
@@ -80,16 +80,15 @@ peripheral.wrap = function(side)
 	return oldPeripheral.wrap(side)
 end
 
-peripheral.find = function(pType, callback)
+peripheral.find = function(pType, fnFilter)
 	if pType == "modem" then
-		if not callback then
+		if not fnFilter then
+			return peripheral.wrap(mountPoint)
+		elseif fnFilter(mountPoint, peripheral.wrap(mountPoint)) then
 			return peripheral.wrap(mountPoint)
 		end
-
-		callback(mountPoint, peripheral.wrap(mountPoint))
-		return nil
 	end
-	return oldPeripheral.find(pType, callback)
+	return oldPeripheral.find(pType, fnFilter)
 end
 
 peripheral.getNames = function()
