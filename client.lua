@@ -1,4 +1,4 @@
-if not socket or not socket.websocket then
+if not ((socket and socket.websocket) or http.websocketAsync) then
   error("You do not have CCTweaks installed or are not on the latest version.")
 end
 
@@ -142,24 +142,44 @@ virtualModem.isOpen = function(channel)
 	return false
 end
 
+local function processMessage(mess)
+  local msg = json.decode(mess)
+  if msg.type == "id" then
+      userID = msg.value
+  elseif msg.type == "receive" then
+      os.queueEvent("modem_message", mountPoint, msg.channel, msg.reply_channel, msg.message, 0, msg.id)
+  elseif msg.type == "error" then
+      os.queueEvent("rednoot_error", msg.message)
+  end
+end
+
 local function daemon()
-    ws = socket.websocket(endpoint)
+    local newws = socket and socket.websocket or http.websocketAsync
+    local async
+    if socket and socket.websocket then
+      async = false
+    else
+      async = true
+    end
+    ws = newws(endpoint)
     timer = os.startTimer(timeout)
     while true do
         local ev = {coroutine.yield()}
         if ev[1] == "socket_connect" and ev[2] == ws.id() then
             connected = true
+        elseif ev[1] == "websocket_success" and ev[2] == endpoint then
+            ws = ev[3]
+            ws.write = ws.send
+            connected = true
+        elseif ev[1] == "websocket_message" and ev[2] == endpoint then
+            local mess = ev[3]
+            if mess then
+              processMessage(mess)
+            end
         elseif ev[1] == "socket_message" and ev[2] == ws.id() then
             local mess = ws.read()
             if mess then
-                local msg = json.decode(mess)
-                if msg.type == "id" then
-                    userID = msg.value
-                elseif msg.type == "receive" then
-                    os.queueEvent("modem_message", mountPoint, msg.channel, msg.reply_channel, msg.message, 0, msg.id)
-                elseif msg.type == "error" then
-                    os.queueEvent("rednoot_error", msg.message)
-                end
+              processMessage(mess)
             end
         elseif ev[1] == "rednoot_open" then
             ws.write(json.encode({
@@ -195,7 +215,7 @@ term.clear()
 term.setCursorPos(1,1)
 
 parallel.waitForAny(daemon, function()
-    while not connected and not ws.checkConnected() do
+    while not connected do
         write(".")
         sleep(0)
     end
