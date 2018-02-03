@@ -1,5 +1,5 @@
 if not ((socket and socket.websocket) or http.websocketAsync) then
-  error("You do not have CCTweaks installed or are not on the latest version.")
+  error("You do not have CC:Tweaked/CCTweaks installed or you are not on the latest version.")
 end
 
 if not fs.exists(".rednoot") then
