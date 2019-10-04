@@ -1,5 +1,5 @@
 # rednoot
-A global rednet/modem bridge.
+A global rednet/modem bridge for computercraft.
 
 # Downloading the client
 
